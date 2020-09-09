@@ -1,43 +1,62 @@
 //файл main.go
+
 package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
-	"godb/internal/godb"
-	"net/url"
-	"os"
+	_ "github.com/lib/pq"
+	"godb/pkg/helpers/pg"
 
-	//Импортируем пакет для работы с пулом соединений
-	"github.com/jackc/pgx/v4/pgxpool"
+	"os"
 )
 
 func main()  {
-	connStr := fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=disable&connect_timeout=%d",
-		"postgres",
-		url.QueryEscape("db_user"),
-		url.QueryEscape("pwd123"),
-		"localhost",
-		"54320",
-		"db_test",
-		5)
 
-	ctx, _ := context.WithCancel(context.Background())
+	//Задаем параметры для подключения к БД(в прошлом задании мы поднимали контейнер с этими креденшелами)
+	cfg := &pg.Config{}
+	cfg.Host = "localhost"
+	cfg.Username = "db_user"
+	cfg.Password = "pwd123"
+	cfg.Port = "54320"
+	cfg.DbName = "db_test"
+	cfg.Timeout = 5
 
-	//Сконфигурируем пул, задав для него максимальное количество соединений
-	poolConfig, _ := pgxpool.ParseConfig(connStr)
+	//Создаем конфиг для пула
+	poolConfig, err := pg.NewPoolConfig(cfg)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Pool config error: %v\n", err)
+		os.Exit(1)
+	}
+
+	//Устанавливаем максимальное количество соединений, которые     могут    находиться в ожидании
 	poolConfig.MaxConns = 5
 
-	//Получаем пул соединений, используя контекст и конфиг
-	pool, err := pgxpool.ConnectConfig(ctx, poolConfig)
+
+	//Создаем пул подключений
+	c, err := pg.NewConnection(poolConfig)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Connect to database failed: %v\n", err)
 		os.Exit(1)
 	}
 	fmt.Println("Connection OK!")
+
+	mdb, _ := sql.Open("postgres", poolConfig.ConnString())
+	err = mdb.Ping()
+	if err != nil {
+		panic(err)
+	}
+
+	//Проверяем подключение
+	_, err = c.Exec(context.Background(), ";");
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Ping failed: %v\n", err)
+		os.Exit(1)
+	}
 	fmt.Println("Ping OK!")
 
-	ins := &godb.Instance{Db: pool}
-	ins.Start()
+	//ins := &godb.Instance{Db: c}
+	//ins.Start()
 
 }
