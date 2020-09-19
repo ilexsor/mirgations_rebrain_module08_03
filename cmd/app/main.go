@@ -7,8 +7,10 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
+	"github.com/pressly/goose"
+	"godb/internal/godb"
 	"godb/pkg/helpers/pg"
-
+	_ "godb/internal/migrations"
 	"os"
 )
 
@@ -48,6 +50,11 @@ func main()  {
 		panic(err)
 	}
 
+	err = goose.Up(mdb, "/var")
+	if err != nil {
+		panic(err)
+	}
+
 	//Проверяем подключение
 	_, err = c.Exec(context.Background(), ";");
 	if err != nil {
@@ -56,7 +63,6 @@ func main()  {
 	}
 	fmt.Println("Ping OK!")
 
-	//ins := &godb.Instance{Db: c}
-	//ins.Start()
-
+	ins := &godb.Instance{Db: c}
+	ins.Start()
 }

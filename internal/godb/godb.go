@@ -17,6 +17,19 @@ type Instance struct {
 
 func (i *Instance) Start()  {
 	fmt.Println("Project godb started!")
+	//i.initUsers()
+
+}
+
+//Структура пользователя
+type User struct {
+	Id int
+	Name string
+	Age int
+	IsVerify bool
+}
+
+func (i *Instance) initUsers (){
 	wordz.Prefix = ""
 	for k := 0; k < 100; k++ {
 		user := &User{}
@@ -37,14 +50,6 @@ func (i *Instance) Start()  {
 	}
 
 	i.removeUnverified(context.Background())
-}
-
-//Структура пользователя
-type User struct {
-	Id int
-	Name string
-	Age int
-	IsVerify bool
 }
 
 func (i *Instance) updateUserAge(ctx context.Context, name string, age int)  {
