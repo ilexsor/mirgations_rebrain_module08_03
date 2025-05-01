@@ -6,15 +6,17 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"godb/internal/godb"
+
+	_ "godb/internal/migrations"
+	"godb/pkg/helpers/pg"
+	"os"
+
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose"
-	"godb/internal/godb"
-	"godb/pkg/helpers/pg"
-	_ "godb/internal/migrations"
-	"os"
 )
 
-func main()  {
+func main() {
 
 	//Задаем параметры для подключения к БД(в прошлом задании мы поднимали контейнер с этими креденшелами)
 	cfg := &pg.Config{}
@@ -22,7 +24,7 @@ func main()  {
 	cfg.Username = "db_user"
 	cfg.Password = "pwd123"
 	cfg.Port = "54320"
-	cfg.DbName = "db_test"
+	cfg.DbName = "db_user"
 	cfg.Timeout = 5
 
 	//Создаем конфиг для пула
@@ -34,7 +36,6 @@ func main()  {
 
 	//Устанавливаем максимальное количество соединений, которые     могут    находиться в ожидании
 	poolConfig.MaxConns = 5
-
 
 	//Создаем пул подключений
 	c, err := pg.NewConnection(poolConfig)
@@ -50,13 +51,14 @@ func main()  {
 		panic(err)
 	}
 
-	err = goose.Up(mdb, "/var")
+	err = goose.Up(mdb, "../../internal/migrations")
+	//err = goose.Down(mdb, "../../internal/migrations")
 	if err != nil {
 		panic(err)
 	}
 
 	//Проверяем подключение
-	_, err = c.Exec(context.Background(), ";");
+	_, err = c.Exec(context.Background(), ";")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Ping failed: %v\n", err)
 		os.Exit(1)
