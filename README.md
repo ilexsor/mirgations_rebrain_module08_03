@@ -8,7 +8,7 @@
 
 Используется пакет ```"github.com/pressly/goose"``` и консольная утилита ``goose`` для создания миграций
 
-```goose create miogation_name go```
+```goose create migration_name go```
 ```
 package migrations
 
