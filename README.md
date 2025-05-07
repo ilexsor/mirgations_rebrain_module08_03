@@ -30,7 +30,7 @@ func downAddUpdatedAt(tx *sql.Tx) error {
 }
 ```
 
-```goose create miogation_name sql```
+```goose create migration_name sql```
 ```
 -- +goose Up
 -- +goose StatementBegin
